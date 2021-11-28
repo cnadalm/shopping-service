@@ -1,6 +1,7 @@
 
 # 1st stage, build the app
-FROM helidon/jdk11-graalvm-maven:21.3.0 as build
+# FROM helidon/jdk11-graalvm-maven:21.3.0 as build
+FROM helidon/jdk17-graalvm-maven:21.3.0 as build
 
 WORKDIR /helidon
 
@@ -13,7 +14,7 @@ RUN mvn package -Pnative-image -Dnative.image.skip -Dmaven.test.skip -Declipseli
 # Do the Maven build!
 # Incremental docker builds will resume here when you change sources
 ADD src src
-RUN mvn package -Pnative-image -Dnative.image.buildStatic -DskipTests
+RUN mvn package -Pnative-image -Dnative.image.buildStatic
 
 RUN echo "done!"
 

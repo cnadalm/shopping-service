@@ -87,7 +87,7 @@ public final class Main {
         return Routing.builder()
                 .register(health)                   // Health at "/health"
                 .register(metrics)                  // Metrics at "/metrics"
-                .register("/api/shopping-items", corsSupport, shoppingItemsResource)
+                .register("/shopping-items", corsSupport, shoppingItemsResource)
                 .build();
     }
 }
