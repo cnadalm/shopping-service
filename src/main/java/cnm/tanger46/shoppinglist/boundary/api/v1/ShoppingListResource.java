@@ -1,4 +1,4 @@
-package cnm.tanger46.shopping.boundary;
+package cnm.tanger46.shoppinglist.boundary.api.v1;
 
 import java.lang.System.Logger;
 import java.util.Collections;
@@ -8,40 +8,41 @@ import javax.json.JsonBuilderFactory;
 import javax.json.JsonException;
 import javax.json.JsonObject;
 
-import cnm.tanger46.shopping.entity.RepositoryException;
-import cnm.tanger46.shopping.entity.ShoppingItem;
-import cnm.tanger46.shopping.entity.ShoppingItemsRepository;
+import cnm.tanger46.shoppinglist.control.CreateItemRequest;
+import cnm.tanger46.shoppinglist.control.DeleteItemRequest;
+import cnm.tanger46.shoppinglist.control.ServiceException;
+import cnm.tanger46.shoppinglist.control.ShoppingListService;
 import io.helidon.common.http.Http;
 import io.helidon.webserver.Routing;
 import io.helidon.webserver.ServerRequest;
 import io.helidon.webserver.ServerResponse;
 import io.helidon.webserver.Service;
 
-public class ShoppingItemsResource implements Service {
+public class ShoppingListResource implements Service {
 
-    private static final Logger LOGGER = System.getLogger(ShoppingItemsResource.class.getName());
+    private static final Logger LOGGER = System.getLogger(ShoppingListResource.class.getName());
     private static final JsonBuilderFactory JSON = Json.createBuilderFactory(Collections.emptyMap());
 
     private static final String ERROR_MSG = "Something went wrong ...";
 
-    private final ShoppingItemsRepository repository;
+    private final ShoppingListService service;
 
-    public ShoppingItemsResource(final ShoppingItemsRepository repository) {
-        this.repository = repository;
+    public ShoppingListResource(final ShoppingListService service) {
+        this.service = service;
     }
 
     @Override
     public void update(Routing.Rules rules) {
         rules
-            .get("/", this::allShoppingItemsHandler)
-            .post("/", this::createShoppingItemHandler)
-            .delete("/{id}", this::deleteShoppingItemHandler);
+            .get("/", this::allItemsHandler)
+            .post("/", this::createItemHandler)
+            .delete("/{id}", this::deleteItemHandler);
     }
 
-    private void allShoppingItemsHandler(final ServerRequest request, final ServerResponse response) {
+    private void allItemsHandler(final ServerRequest request, final ServerResponse response) {
         try {
             final var jsonBuilder = JSON.createArrayBuilder();
-            repository.all().stream()
+            service.allItems().items().stream()
                     .map(shoppingItem -> JSON.createObjectBuilder()
                         .add("id", shoppingItem.id())
                         .add("label", shoppingItem.label())
@@ -49,19 +50,19 @@ public class ShoppingItemsResource implements Service {
                         .build())
                     .forEach(jsonBuilder::add);
             response.send(jsonBuilder.build());
-        } catch (RepositoryException e) {
+        } catch (ServiceException e) {
             LOGGER.log(System.Logger.Level.ERROR, ERROR_MSG, e);
             response.send(e);
         }
     }
 
-    private void createShoppingItemHandler(final ServerRequest request, final ServerResponse response) {
+    private void createItemHandler(final ServerRequest request, final ServerResponse response) {
         request.content().as(JsonObject.class)
-            .thenAccept(jsonRequest -> createShoppingItem(jsonRequest, response))
+            .thenAccept(jsonRequest -> createItem(jsonRequest, response))
             .exceptionally(ex -> processErrors(ex, response));
     }
 
-    private void createShoppingItem(final JsonObject jsonRequest, final ServerResponse response) {
+    private void createItem(final JsonObject jsonRequest, final ServerResponse response) {
         if (!jsonRequest.containsKey("label")) {
             final JsonObject jsonError = JSON.createObjectBuilder().add("error", "No label provided").build();
             response.status(Http.Status.BAD_REQUEST_400).send(jsonError);
@@ -70,20 +71,20 @@ public class ShoppingItemsResource implements Service {
 
         try {
             final String label = jsonRequest.getString("label");
-            repository.create(new ShoppingItem(label));
+            service.createItem(new CreateItemRequest(label));
             response.status(Http.Status.NO_CONTENT_204).send();
-        } catch (RepositoryException e) {
+        } catch (ServiceException e) {
             LOGGER.log(System.Logger.Level.ERROR, ERROR_MSG, e);
             response.send(e);
         }
     }
 
-    private void deleteShoppingItemHandler(final ServerRequest request, final ServerResponse response) {
+    private void deleteItemHandler(final ServerRequest request, final ServerResponse response) {
         try {
             final var id = request.path().param("id");
-            repository.delete(id);
+            service.deleteItem(new DeleteItemRequest(id));
             response.status(Http.Status.NO_CONTENT_204).send();
-        } catch (RepositoryException e) {
+        } catch (ServiceException e) {
             LOGGER.log(System.Logger.Level.ERROR, ERROR_MSG, e);
             response.send(e);
         }

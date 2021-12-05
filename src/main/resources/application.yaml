@@ -8,5 +8,5 @@ server:
   host: 0.0.0.0
 
 microstream:
-  channel-count: 2
+  channel-count: 1
   # housekeeping-interval: 2000ms

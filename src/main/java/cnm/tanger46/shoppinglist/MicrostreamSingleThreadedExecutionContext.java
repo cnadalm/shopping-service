@@ -1,4 +1,4 @@
-package cnm.tanger46.shopping;
+package cnm.tanger46.shoppinglist;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;

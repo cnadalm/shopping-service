@@ -1,4 +1,4 @@
-package cnm.tanger46.shopping.entity;
+package cnm.tanger46.shoppinglist.entity;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -11,13 +11,13 @@ import java.util.UUID;
 
 // }
 
-public class ShoppingItem {
+public class Item {
 
     private final String id;
     private final String label;
     private final Instant createdAt;
 
-    public ShoppingItem(String label) {
+    public Item(String label) {
         this.id = UUID.randomUUID().toString();
         this.label= label;
         this.createdAt = Instant.now();

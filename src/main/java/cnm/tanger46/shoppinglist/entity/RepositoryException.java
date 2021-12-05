@@ -1,4 +1,4 @@
-package cnm.tanger46.shopping.entity;
+package cnm.tanger46.shoppinglist.entity;
 
 public class RepositoryException extends Exception { 
     

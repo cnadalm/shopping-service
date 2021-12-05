@@ -1,8 +1,8 @@
-package cnm.tanger46.shopping;
+package cnm.tanger46.shoppinglist;
 
-import cnm.tanger46.shopping.boundary.FileShoppingItemsRepository;
-import cnm.tanger46.shopping.boundary.ShoppingItemsResource;
-import cnm.tanger46.shopping.entity.ShoppingItemsRepository;
+import cnm.tanger46.shoppinglist.boundary.api.v1.ShoppingListResource;
+import cnm.tanger46.shoppinglist.boundary.storage.FileShoppingListRepository;
+import cnm.tanger46.shoppinglist.control.ShoppingListService;
 import io.helidon.common.LogConfig;
 import io.helidon.common.reactive.Single;
 import io.helidon.config.Config;
@@ -70,24 +70,25 @@ public final class Main {
      * @return routing configured with JSON support, a health check, and a service
      * @param config configuration of this server
      */
-    private static Routing createRouting(Config config) {
+    private static Routing createRouting(final Config config) {
 
-        final ShoppingItemsRepository shoppingItemsRepository = new FileShoppingItemsRepository(config);
+        final var shoppingListRepository = new FileShoppingListRepository(config);
+        final var shoppingListService = new ShoppingListService(shoppingListRepository);
+        final var shoppingListResource = new ShoppingListResource(shoppingListService);
 
-        MetricsSupport metrics = MetricsSupport.create();
-        ShoppingItemsResource shoppingItemsResource = new ShoppingItemsResource(shoppingItemsRepository);
-        HealthSupport health = HealthSupport.builder()
+        final var metrics = MetricsSupport.create();
+        final var health = HealthSupport.builder()
                 .addLiveness(HealthChecks.healthChecks())   // Adds a convenient set of checks
                 .build();
 
-        CorsSupport corsSupport = CorsSupport.builder()
+        final var corsSupport = CorsSupport.builder()
                 .addCrossOrigin(CrossOriginConfig.create()) 
                 .build();
 
         return Routing.builder()
                 .register(health)                   // Health at "/health"
                 .register(metrics)                  // Metrics at "/metrics"
-                .register("/shopping-items", corsSupport, shoppingItemsResource)
+                .register("/shopping-list/api/items", corsSupport, shoppingListResource)
                 .build();
     }
 }

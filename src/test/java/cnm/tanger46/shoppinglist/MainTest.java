@@ -1,5 +1,7 @@
 
-package cnm.tanger46.shopping;
+package cnm.tanger46.shoppinglist;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
@@ -8,17 +10,15 @@ import javax.json.Json;
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 
-import io.helidon.media.jsonp.JsonpSupport;
-import io.helidon.webclient.WebClient;
-import io.helidon.webclient.WebClientResponse;
-import io.helidon.webserver.WebServer;
-
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import io.helidon.media.jsonp.JsonpSupport;
+import io.helidon.webclient.WebClient;
+import io.helidon.webclient.WebClientResponse;
+import io.helidon.webserver.WebServer;
 
 public class MainTest {
 

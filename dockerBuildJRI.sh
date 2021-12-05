@@ -1,8 +1,10 @@
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home; java -version
+#!/bin/bash
+set -e
 
+# Build project
 mvn package -DskipTests -Pjlink-image
 
-# Build image
+# Build doker image
 if [ -z "$1" ]
 then # no argument supplied
     docker build -t tanger46/shopping-service -f Dockerfile.jlink .

@@ -1,4 +1,4 @@
-package cnm.tanger46.shopping.boundary;
+package cnm.tanger46.shoppinglist.boundary.storage;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,16 +11,16 @@ import java.util.Optional;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import cnm.tanger46.shopping.entity.RepositoryException;
-import cnm.tanger46.shopping.entity.ShoppingItem;
-import cnm.tanger46.shopping.entity.ShoppingItemsRepository;
+import cnm.tanger46.shoppinglist.entity.RepositoryException;
+import cnm.tanger46.shoppinglist.entity.Item;
+import cnm.tanger46.shoppinglist.entity.ShoppingListRepository;
 import io.helidon.config.Config;
 import one.microstream.storage.embedded.types.EmbeddedStorage;
 import one.microstream.storage.embedded.types.EmbeddedStorageManager;
 // import one.microstream.storage.restservice.types.StorageRestService;
 // import one.microstream.storage.restservice.types.StorageRestServiceResolver;
 
-public class FileShoppingItemsRepository implements ShoppingItemsRepository {
+public class FileShoppingListRepository implements ShoppingListRepository {
 
     private final String storagePath;
     private final ReadWriteLock lock = new ReentrantReadWriteLock(true);
@@ -28,37 +28,37 @@ public class FileShoppingItemsRepository implements ShoppingItemsRepository {
     private EmbeddedStorageManager storage = null;
     // private StorageRestService restService = null;
 
-    public FileShoppingItemsRepository(final Config config) {
+    public FileShoppingListRepository(final Config config) {
         final var storageRelativePath = config.get("app.storage.path").asString().orElse("shopping-storage");
         this.storagePath = System.getProperty("user.dir") + File.separator + storageRelativePath;
     }
 
     @Override
-    public Collection<ShoppingItem> all() throws RepositoryException {
+    public Collection<Item> all() throws RepositoryException {
         lock.readLock().lock();
         try {
-            return data().shoppingItems().values();
+            return data().items().values();
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    public Optional<ShoppingItem> find(final String id) throws RepositoryException {
+    public Optional<Item> find(final String id) throws RepositoryException {
         lock.readLock().lock();
         try {
-            return Optional.ofNullable(data().shoppingItems().get(id));
+            return Optional.ofNullable(data().items().get(id));
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    public ShoppingItem create(final ShoppingItem shoppingItem) throws RepositoryException {
+    public Item create(final Item shoppingItem) throws RepositoryException {
         lock.writeLock().lock();
         try {
-            data().shoppingItems().put(shoppingItem.id(), shoppingItem);
-            storage.storeAll(data().shoppingItems());
+            data().items().put(shoppingItem.id(), shoppingItem);
+            storage.storeAll(data().items());
             return shoppingItem;
         } finally {
             lock.writeLock().unlock();
@@ -66,7 +66,7 @@ public class FileShoppingItemsRepository implements ShoppingItemsRepository {
     }
 
     @Override
-    public ShoppingItem update(final ShoppingItem shoppingItem) throws RepositoryException {
+    public Item update(final Item shoppingItem) throws RepositoryException {
         lock.writeLock().lock();
         try {
             this.delete(shoppingItem.id());
@@ -81,26 +81,26 @@ public class FileShoppingItemsRepository implements ShoppingItemsRepository {
     public void delete(final String id) throws RepositoryException {
         lock.writeLock().lock();
         try {
-            data().shoppingItems().remove(id);
-            storage.store(data().shoppingItems());
+            data().items().remove(id);
+            storage.store(data().items());
         } finally {
             lock.writeLock().unlock();
         }
     }
 
-    private ShoppingItemsRoot data() throws RepositoryException {
+    private ShoppingListRoot data() throws RepositoryException {
         if (Objects.isNull(storage)) {
             final var path = obtainStoragePath();
             this.storage = EmbeddedStorage.start(path);
             if (Objects.isNull(storage.root())) {
-                storage.setRoot(new ShoppingItemsRoot());
+                storage.setRoot(new ShoppingListRoot());
                 storage.storeRoot();
             }
             // create the REST service
             // restService = StorageRestServiceResolver.resolve(storage);
             // restService.start();
         }
-        return (ShoppingItemsRoot) storage.root();
+        return (ShoppingListRoot) storage.root();
     }
 
     private Path obtainStoragePath() throws RepositoryException {
